@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.myself.big.data.core.dao.RmsAttachQualityModelHbaseMapper">
+
+    <insert id="upsertIntoRmsAttachQualityTable">
+        <!-- 这里使用了动态表名的方式，将 ${day} 替换为实际的表名后缀 -->
+        upsert into "tr_rms_attach_quality_${dayStr}"
+        (
+        "rowKey",
+        "id",
+        "pppoe" ,
+        "signBandwidth" ,
+        "modelName" ,
+        "rmsMac" ,
+        "attachMac" ,
+        "attachModel" ,
+        "attachChannel" ,
+        "attachProtocol" ,
+        "rssi" ,
+        "speed" ,
+        "addTime" ,
+        "hourStr" ,
+        "attachType"
+        )
+        values(
+        #{item.rowKey},
+        #{item.id},
+        #{item.pppoe},
+        #{item.signBandwidth},
+        #{item.modelName},
+        #{item.rmsMac},
+        #{item.attachMac},
+        #{item.attachModel},
+        #{item.attachChannel},
+        #{item.attachProtocol},
+        #{item.rssi},
+        #{item.speed},
+        #{item.addTime},
+        #{item.hourStr},
+        #{item.attachType}
+        )
+    </insert>
+
+    <update id="createRmsAttachQualityTable">
+        CREATE TABLE IF NOT EXISTS "tr_rms_attach_quality_${dayStr}" (
+            "rowKey" BIGINT PRIMARY KEY,
+            "id" BIGINT ,
+            "pppoe" VARCHAR,
+            "signBandwidth" VARCHAR,
+            "modelName" VARCHAR,
+            "rmsMac" VARCHAR,
+            "attachMac" VARCHAR,
+            "attachModel" VARCHAR,
+            "attachChannel" VARCHAR,
+            "attachProtocol" VARCHAR,
+            "rssi" VARCHAR,
+            "speed" VARCHAR,
+            "addTime" DATE,
+            "hourStr" VARCHAR,
+            "attachType" VARCHAR
+            )
+            COLUMN_ENCODED_BYTES = 0,SALT_BUCKETS=${salt}
+    </update>
+
+
+    <update id="appointRmsAttachQualityLocalIndex">
+        CREATE LOCAL INDEX attach_${index}_${dayStr} ON "tr_rms_attach_quality_${dayStr}" ("${index}")
+    </update>
+    <update id="appointRmsAttachQualityGlobalIndex">
+        CREATE INDEX attach_${index}_${dayStr} ON "tr_rms_attach_quality_${dayStr}" ("${index}") INCLUDE("id","pppoe","signBandwidth","modelName","attachMac","attachModel","attachChannel","attachProtocol","rssi","speed","addTime","hourStr","attachType") SALT_BUCKETS=${salt}
+    </update>
+    <!-- SALT_BUCKETS=${salt} -->
+
+    <select id="queryRmsAttachQualityModelsByRmsMac" resultType="com.myself.big.data.core.bean.RmsAttachQualityModelHbase">
+        select * from "tr_rms_attach_quality_${dayStr}" where "rmsMac" = #{rmsMac}
+    </select>
+</mapper>
